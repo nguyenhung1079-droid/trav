@@ -1,0 +1,61 @@
+# ============================================================
+#  Cấu hình Decap CMS cho Bản tin PVTM & CBS
+#  - Mỗi "số bản tin" là 1 bản ghi (file JSON trong content/issues/)
+#  - Bấm "Publish" => commit vào GitHub => website tự cập nhật
+# ============================================================
+
+# --- Cách 1 (DỄ NHẤT): deploy site lên Netlify, dùng Git Gateway ---
+backend:
+  name: git-gateway
+  branch: main
+
+# --- Cách 2: chạy thẳng trên GitHub (bỏ comment khối dưới, xoá khối trên) ---
+# backend:
+#   name: github
+#   repo: TEN-TAI-KHOAN/TEN-REPO      # ví dụ: cuc-pvtm/bantin-web
+#   branch: main
+#   # cần một dịch vụ OAuth (xem README, mục "Xác thực GitHub")
+#   base_url: https://<oauth-cua-ban>.workers.dev
+
+publish_mode: editorial_workflow         # cho phép Lưu nháp -> Duyệt -> Xuất bản
+media_folder: "content/images"           # nơi lưu ảnh tải lên
+public_folder: "images"                  # đường dẫn ảnh dùng trong nội dung
+locale: "vi"
+
+collections:
+  - name: "issues"
+    label: "Số bản tin"
+    label_singular: "Số bản tin"
+    folder: "content/issues"
+    create: true
+    format: "json"
+    slug: "{{year}}-{{number}}"
+    summary: "Số {{number}}.{{year}} — {{title}}"
+    sortable_fields: ['date','number']
+    fields:
+      - { name: "number", label: "Số", widget: "string", hint: "Ví dụ: 20" }
+      - { name: "year",   label: "Năm",  widget: "string", default: "2026" }
+      - { name: "date",   label: "Ngày phát hành", widget: "datetime", date_format: "YYYY-MM-DD", time_format: false, format: "YYYY-MM-DD" }
+      - { name: "title",  label: "Tiêu đề bản tin", widget: "string", default: "Bản tin Phòng vệ thương mại & Cảnh báo sớm" }
+      - { name: "cover_hero", label: "Ảnh bìa (hero)", widget: "image", required: false, hint: "Ảnh lớn trang bìa / tin nổi bật" }
+      - name: "highlights"
+        label: "Tin nổi bật (trang bìa)"
+        widget: "list"
+        max: 2
+        summary: "{{fields.title}}"
+        fields:
+          - { name: "title", label: "Tiêu đề", widget: "string" }
+          - { name: "image", label: "Ảnh minh hoạ", widget: "image", required: false }
+          - { name: "article", label: "Mã bài liên kết (id)", widget: "string", required: false, hint: "Ví dụ: a1" }
+      - name: "articles"
+        label: "Bài viết"
+        label_singular: "Bài viết"
+        widget: "list"
+        summary: "[{{fields.section}}] {{fields.title}}"
+        fields:
+          - { name: "id", label: "Mã bài (id)", widget: "string", hint: "Duy nhất trong số, ví dụ: a1, b2, c1" }
+          - { name: "section", label: "Chuyên mục", widget: "select", options: ["Tin trong nước","Tin nước ngoài","Xuất nhập khẩu"] }
+          - { name: "title", label: "Tiêu đề bài", widget: "string" }
+          - { name: "image", label: "Ảnh đại diện", widget: "image", required: false }
+          - { name: "summary", label: "Tóm tắt ngắn", widget: "text", required: false }
+          - { name: "body", label: "Nội dung", widget: "markdown", hint: "Hỗ trợ tiêu đề ## , in đậm **, ảnh, bảng…" }
